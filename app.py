@@ -10,7 +10,7 @@ client = pymongo.MongoClient("mongodb+srv://admin:admin@clustermark.hvrmb.mongod
 db = client["product_description_db"]
 collection = db["descriptions"]
 
-os.environ['OPENAI_API_KEY'] = "sk-WnOdjvQuExa-P2yQ7dAnCcW6pNF2IfxlK3J-h9Zvi6T3BlbkFJ_WOmJdEzCAgEmdVN155rlemmxR0AFoLnYHPpMSSR8A"
+os.environ['OPENAI_API_KEY'] = "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"
 client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 
 MODEL = "gpt-4o"
