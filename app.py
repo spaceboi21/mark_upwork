@@ -535,18 +535,17 @@ def generate_usps():
 
     st.write("Select the attributes you want to include (Max 6):")
 
-    # Align checkboxes and titles properly
     selected_count = len(st.session_state["selected_usps"])
 
     # Add custom CSS to align checkboxes and titles properly
     st.markdown("""
         <style>
-        .checkbox-title {
+        .checkbox-container {
             display: flex;
             align-items: center;
             margin-bottom: 10px;
         }
-        .checkbox-title .stCheckbox {
+        .checkbox-container .stCheckbox {
             margin-right: 10px;
         }
         </style>
@@ -562,9 +561,9 @@ def generate_usps():
                 selected = cols[0].checkbox("", key=f"usp_{index}", disabled=True)  # Disable extra selections
             else:
                 selected = cols[0].checkbox("", key=f"usp_{index}")
-
+            
             # Align checkbox and title
-            cols[1].markdown(f"<div class='checkbox-title'><strong>{name}</strong></div>", unsafe_allow_html=True)
+            cols[1].markdown(f"<div class='checkbox-container'><strong>{name}</strong></div>", unsafe_allow_html=True)
 
         # Expander to show description
         with st.expander(f"More about {name}"):
@@ -586,7 +585,6 @@ def generate_usps():
     if st.button("Cancel", key="cancel_generate_usps"):
         st.session_state["step"] = 0
         st.rerun()
-
 
 # Step 3: Finalize USPs
 def finalize_usps():
@@ -626,8 +624,8 @@ def finalize_usps():
 
     # Display and allow deletion of USPs
     if st.session_state["dragged_usps"]:
-        for usp in st.session_state["dragged_usps"]:
-            if st.button(f"❌ Delete {usp}", key=f"delete_usp_{usp}"):
+        for index, usp in enumerate(st.session_state["dragged_usps"]):
+            if st.button(f"❌ Delete {usp}", key=f"delete_usp_{usp}_{index}"):  # Ensure unique keys
                 # Remove from both custom and final USP list
                 st.session_state["dragged_usps"].remove(usp)
                 if usp in st.session_state["final_usps"]:
@@ -636,6 +634,20 @@ def finalize_usps():
                 # Remove from custom USP list if it's a custom one
                 st.session_state["custom_usps"] = [cusp for cusp in st.session_state["custom_usps"] if cusp["name"] != usp]
                 st.rerun()
+
+    # Finalize USPs button
+    if st.button("Finalize USPs"):
+        # Update the final USPs list with the dragged items
+        st.session_state["final_usps"] = {
+            usp: st.session_state["final_usps"].get(usp, usp)
+            for usp in st.session_state["dragged_usps"]
+        }
+        st.session_state["step"] = 4
+        st.rerun()
+
+    if st.button("Cancel", key="cancel_finalize_usps"):
+        st.session_state["step"] = 0
+        st.rerun()
 
     # Finalize USPs button
     if st.button("Finalize USPs"):
