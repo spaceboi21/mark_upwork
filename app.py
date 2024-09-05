@@ -535,22 +535,41 @@ def generate_usps():
 
     st.write("Select the attributes you want to include (Max 6):")
 
+    # Align checkboxes and titles properly
     selected_count = len(st.session_state["selected_usps"])
 
+    # Add custom CSS to align checkboxes and titles properly
+    st.markdown("""
+        <style>
+        .checkbox-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .checkbox-title .stCheckbox {
+            margin-right: 10px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
     for index, (name, description) in enumerate(st.session_state["usps"]):
-        # Checkbox is outside the expander (showing USP name)
-        cols = st.columns([1, 9])  # Two columns: 1 for checkbox, 9 for USP name
-        if selected_count >= 6 and name not in st.session_state["selected_usps"]:
-            selected = cols[0].checkbox("", key=f"usp_{index}", disabled=True)  # Disable extra selections
-        else:
-            selected = cols[0].checkbox("", key=f"usp_{index}")
-        
-        cols[1].write(f"**{name}**")
-        
+        # Create a new container with checkbox and title on the same line
+        with st.container():
+            cols = st.columns([1, 9])  # Two columns: 1 for checkbox, 9 for title
+
+            # Prevent adding more than 6 USPs
+            if selected_count >= 6 and name not in st.session_state["selected_usps"]:
+                selected = cols[0].checkbox("", key=f"usp_{index}", disabled=True)  # Disable extra selections
+            else:
+                selected = cols[0].checkbox("", key=f"usp_{index}")
+
+            # Align checkbox and title
+            cols[1].markdown(f"<div class='checkbox-title'><strong>{name}</strong></div>", unsafe_allow_html=True)
+
         # Expander to show description
         with st.expander(f"More about {name}"):
             st.write(description)
-        
+
         # Add or remove USPs based on the checkbox selection
         if selected and name not in st.session_state["selected_usps"]:
             st.session_state["selected_usps"][name] = description
@@ -567,6 +586,7 @@ def generate_usps():
     if st.button("Cancel", key="cancel_generate_usps"):
         st.session_state["step"] = 0
         st.rerun()
+
 
 # Step 3: Finalize USPs
 def finalize_usps():
