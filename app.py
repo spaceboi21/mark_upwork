@@ -6,7 +6,7 @@ import pymongo
 import os
 
 # MongoDB setup
-client = pymongo.MongoClient("mongodb://localhost:27017")
+client = pymongo.MongoClient("mongodb+srv://admin:admin@clustermark.hvrmb.mongodb.net/?retryWrites=true&w=majority&appName=ClusterMark")
 db = client["product_description_db"]
 collection = db["descriptions"]
 
