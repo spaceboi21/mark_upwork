@@ -452,11 +452,11 @@ def dashboard():
 
             # Short description with bullets link
             if cols[2].button("Short - Bullets", key=f"bullets_{product['_id']}"):
-                show_description(product, "no_bullets")
+                show_description(product, "bullets")
 
             # Short description without bullets link
             if cols[3].button("Short - No Bullets", key=f"no_bullets_{product['_id']}"):
-                show_description(product, "bullets")
+                show_description(product, "no_bullets")
 
             # Delete product button
             if cols[4].button("❌", key=f"delete_{product['_id']}"):
@@ -535,18 +535,29 @@ def generate_usps():
 
     st.write("Select the attributes you want to include (Max 6):")
 
+    selected_count = len(st.session_state["selected_usps"])
+
     for index, (name, description) in enumerate(st.session_state["usps"]):
-        cols = st.columns([6, 1])  # Two columns: 6 for USP, 1 for checkbox
-        cols[0].write(f"**{name}**")
-        selected = cols[1].checkbox("", key=f"usp_{index}")
+        # Checkbox is outside the expander (showing USP name)
+        cols = st.columns([1, 9])  # Two columns: 1 for checkbox, 9 for USP name
+        if selected_count >= 6 and name not in st.session_state["selected_usps"]:
+            selected = cols[0].checkbox("", key=f"usp_{index}", disabled=True)  # Disable extra selections
+        else:
+            selected = cols[0].checkbox("", key=f"usp_{index}")
         
-        if selected and len(st.session_state["selected_usps"]) < 6:
+        cols[1].write(f"**{name}**")
+        
+        # Expander to show description
+        with st.expander(f"More about {name}"):
+            st.write(description)
+        
+        # Add or remove USPs based on the checkbox selection
+        if selected and name not in st.session_state["selected_usps"]:
             st.session_state["selected_usps"][name] = description
-        elif selected and len(st.session_state["selected_usps"]) >= 6:
-            st.error("Maximum of 6 USPs allowed")
-            st.session_state[f"usp_{index}"] = False  # Disable extra selection
+            selected_count += 1
         elif not selected and name in st.session_state["selected_usps"]:
             del st.session_state["selected_usps"][name]
+            selected_count -= 1
     
     if st.button("Submit") and st.session_state["selected_usps"]:
         st.session_state["final_usps"] = st.session_state["selected_usps"]
@@ -710,4 +721,3 @@ if __name__ == "__main__":
         generate_long_description()
     elif st.session_state["step"] == 5:
         generate_short_description()
-
