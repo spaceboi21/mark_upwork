@@ -602,14 +602,17 @@ def finalize_usps():
     if st.button("Add Custom USP"):
         st.session_state["custom_usp_form_visible"] = True
 
+    # Display form for adding a Custom USP
     if st.session_state["custom_usp_form_visible"]:
         custom_usp_name = st.text_input("Custom USP Name (Max 6 words)", max_chars=50)
         custom_usp_description = st.text_area("Custom USP Description (Max 20 words)", max_chars=150)
 
+        # Handle adding custom USP
         if st.button("Submit Custom USP"):
             if len(custom_usp_name.split()) <= 6 and len(custom_usp_description.split()) <= 20 and len(st.session_state["dragged_usps"]) < 6:
+                # Add custom USP to the session state and lists
                 st.session_state["custom_usps"].append({
-                    "name": custom_usp_name, 
+                    "name": custom_usp_name,
                     "description": custom_usp_description
                 })
                 st.session_state["dragged_usps"].append(custom_usp_name)
@@ -617,20 +620,26 @@ def finalize_usps():
                 st.session_state["custom_usp_form_visible"] = False
                 st.rerun()
             else:
-                st.error("Custom USP name should be up to 6 words and description up to 20 words, and you can’t have more than 6 USPs.")
-        if len(st.session_state["dragged_usps"]) >= 6:
-            st.error("You cannot add more than 6 USPs, including Custom USPs.")
+                st.error("Custom USP name should be up to 6 words, description up to 20 words, and you can't have more than 6 USPs in total.")
+        elif len(st.session_state["dragged_usps"]) >= 6:
+            st.error("You cannot add more than 6 USPs, including custom USPs.")
 
-    # Delete USP button
+    # Display and allow deletion of USPs
     if st.session_state["dragged_usps"]:
         for usp in st.session_state["dragged_usps"]:
             if st.button(f"❌ Delete {usp}", key=f"delete_usp_{usp}"):
+                # Remove from both custom and final USP list
                 st.session_state["dragged_usps"].remove(usp)
                 if usp in st.session_state["final_usps"]:
                     del st.session_state["final_usps"][usp]
+
+                # Remove from custom USP list if it's a custom one
+                st.session_state["custom_usps"] = [cusp for cusp in st.session_state["custom_usps"] if cusp["name"] != usp]
                 st.rerun()
 
+    # Finalize USPs button
     if st.button("Finalize USPs"):
+        # Update the final USPs list with the dragged items
         st.session_state["final_usps"] = {
             usp: st.session_state["final_usps"].get(usp, usp)
             for usp in st.session_state["dragged_usps"]
@@ -641,6 +650,7 @@ def finalize_usps():
     if st.button("Cancel", key="cancel_finalize_usps"):
         st.session_state["step"] = 0
         st.rerun()
+
 
 # Step 4: Create the Long Product Description
 def generate_long_description():
