@@ -93,11 +93,11 @@ def dashboard():
                 show_description(product, "long")
 
             # Short description with bullets link
-            if cols[2].button("Short - Bullets", key=f"bullets_{product['_id']}"):
+            if cols[2].button("Short - Bullets", key=f"no_bullets_{product['_id']}"):
                 show_description(product, "bullets")
 
             # Short description without bullets link
-            if cols[3].button("Short - No Bullets", key=f"no_bullets_{product['_id']}"):
+            if cols[3].button("Short - No Bullets", key=f"bullets_{product['_id']}"):
                 show_description(product, "no_bullets")
 
             # Delete product button
