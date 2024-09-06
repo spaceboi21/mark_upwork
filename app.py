@@ -599,26 +599,26 @@ def finalize_usps():
     st.session_state["dragged_usps"] = dragged_usps
 
     # Add Custom USP
-    if st.button("Add Custom USP"):
+    if st.button("Add Custom USP", key="add_custom_usp"):
         st.session_state["custom_usp_form_visible"] = True
 
     # Custom USP form
     if st.session_state["custom_usp_form_visible"]:
-        custom_usp_name = st.text_input("Custom USP Name (Max 6 words)", max_chars=50)
-        custom_usp_description = st.text_area("Custom USP Description (Max 20 words)", max_chars=150)
+        custom_usp_name = st.text_input("Custom USP Name (Max 6 words)", max_chars=50, key="custom_usp_name_input")
+        custom_usp_description = st.text_area("Custom USP Description (Max 20 words)", max_chars=150, key="custom_usp_description_input")
 
         # Handle adding custom USP
-        if st.button("Submit Custom USP"):
+        if st.button("Submit Custom USP", key="submit_custom_usp"):
             if len(custom_usp_name.split()) <= 6 and len(custom_usp_description.split()) <= 20 and len(st.session_state["dragged_usps"]) < 6:
                 # Ensure the custom USP is added only once
                 if (custom_usp_name not in st.session_state["final_usps"] 
                     and all(cusp["name"] != custom_usp_name for cusp in st.session_state["custom_usps"])):
-                    # Add to custom_usps and dragged_usps if not already present
+                    # Add to custom_usps and final_usps
                     st.session_state["custom_usps"].append({
                         "name": custom_usp_name,
                         "description": custom_usp_description
                     })
-                    # Append to dragged_usps and final_usps only once
+                    # Append to dragged_usps only once
                     st.session_state["dragged_usps"].append(custom_usp_name)
                     st.session_state["final_usps"][custom_usp_name] = custom_usp_description
                 st.session_state["custom_usp_form_visible"] = False
@@ -644,7 +644,7 @@ def finalize_usps():
                 st.rerun()
 
     # Finalize USPs button
-    if st.button("Finalize USPs"):
+    if st.button("Finalize USPs", key="finalize_usps"):
         # Update the final USPs list with the dragged order
         st.session_state["final_usps"] = {
             usp: st.session_state["final_usps"].get(usp, usp)
@@ -654,14 +654,10 @@ def finalize_usps():
         st.rerun()
 
     # Cancel button
-    if st.button("Cancel", key="cancel_finalize_usps"):
+    if st.button("Cancel", key="cancel_finalize_usps_unique"):  # Ensure unique key
         st.session_state["step"] = 0
         st.rerun()
 
-    # Cancel button
-    if st.button("Cancel", key="cancel_finalize_usps"):
-        st.session_state["step"] = 0
-        st.rerun()
 
 
 
