@@ -602,7 +602,7 @@ def finalize_usps():
 
     st.write("Drag to reorder USPs according to priority:")
 
-    # Sort and display USPs
+    # Sort and display USPs (names, not descriptions)
     dragged_usps = sort_items(items=[usp for _, usp in usps], direction="vertical", key="usp_sortable_list")
     st.session_state["dragged_usps"] = dragged_usps
 
@@ -632,7 +632,7 @@ def finalize_usps():
                         "name": custom_usp_name,
                         "description": custom_usp_description
                     })
-                    # Append to dragged_usps only if it's not already there
+                    # Append the USP name (not description) to dragged_usps
                     st.session_state["dragged_usps"].append(custom_usp_name)
                         
                     # Add to final_usps (using the unique ID)
@@ -650,10 +650,11 @@ def finalize_usps():
 
     # Display and allow deletion of USPs
     if st.session_state["dragged_usps"]:
-        for index, (usp_id, usp) in enumerate(usps):
-            if st.button(f"❌ Delete {usp}", key=f"delete_usp_{usp_id}_{index}"):
+        for index, (usp_id, usp_name) in enumerate(usps):
+            if st.button(f"❌ Delete {usp_name}", key=f"delete_usp_{usp_id}_{index}"):
                 # Remove from dragged_usps, final_usps, and custom_usps
-                st.session_state["dragged_usps"].remove(usp)
+                if usp_name in st.session_state["dragged_usps"]:
+                    st.session_state["dragged_usps"].remove(usp_name)
                 if usp_id in st.session_state["final_usps"]:
                     del st.session_state["final_usps"][usp_id]
 
@@ -676,6 +677,7 @@ def finalize_usps():
     if st.button("Cancel", key="cancel_finalize_usps_unique"):  # Ensure unique key
         st.session_state["step"] = 0
         st.rerun()
+
 
 
 
