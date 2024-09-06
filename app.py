@@ -585,16 +585,20 @@ def generate_usps():
         st.session_state["step"] = 0
         st.rerun()
 
+import uuid  # We'll use this to create unique IDs for each USP
+
 def finalize_usps():
     st.subheader("STEP 3: Finalize USPs")
 
     # Combine selected and custom USPs into one list for sorting
-    usps = list(st.session_state["final_usps"].keys()) + [usp['name'] for usp in st.session_state["custom_usps"]]
+    usps = [(usp_id, usp) for usp_id, usp in st.session_state["final_usps"].items()] + [
+        (usp['id'], usp['name']) for usp in st.session_state["custom_usps"]
+    ]
 
     st.write("Drag to reorder USPs according to priority:")
-    
+
     # Sort and display USPs
-    dragged_usps = sort_items(items=usps, direction="vertical", key="usp_sortable_list")
+    dragged_usps = sort_items(items=[usp for _, usp in usps], direction="vertical", key="usp_sortable_list")
     st.session_state["dragged_usps"] = dragged_usps
 
     # Add Custom USP
@@ -615,17 +619,19 @@ def finalize_usps():
             if len(custom_usp_name.split()) <= 6 and len(custom_usp_description.split()) <= 20 and len(st.session_state["dragged_usps"]) < 6:
                 # Ensure the custom USP is added only once
                 if custom_usp_name not in st.session_state["final_usps"] and all(cusp["name"] != custom_usp_name for cusp in st.session_state["custom_usps"]):
+                    # Add unique ID for each USP
+                    custom_usp_id = str(uuid.uuid4())
                     # Add to custom_usps and final_usps
                     st.session_state["custom_usps"].append({
+                        "id": custom_usp_id,
                         "name": custom_usp_name,
                         "description": custom_usp_description
                     })
                     # Append to dragged_usps only if it's not already there
-                    if custom_usp_name not in st.session_state["dragged_usps"]:
-                        st.session_state["dragged_usps"].append(custom_usp_name)
+                    st.session_state["dragged_usps"].append(custom_usp_name)
                         
-                    # Add to final_usps
-                    st.session_state["final_usps"][custom_usp_name] = custom_usp_description
+                    # Add to final_usps (using the unique ID)
+                    st.session_state["final_usps"][custom_usp_id] = custom_usp_name
 
                 # Set the flag to prevent duplicate submission
                 st.session_state["usp_added_flag"] = True
@@ -639,25 +645,24 @@ def finalize_usps():
 
     # Display and allow deletion of USPs
     if st.session_state["dragged_usps"]:
-        for index, usp in enumerate(st.session_state["dragged_usps"]):
-            if st.button(f"❌ Delete {usp}", key=f"delete_usp_{usp}_{index}"):
+        for index, (usp_id, usp) in enumerate(usps):
+            if st.button(f"❌ Delete {usp}", key=f"delete_usp_{usp_id}_{index}"):
                 # Remove from dragged_usps, final_usps, and custom_usps
                 st.session_state["dragged_usps"].remove(usp)
-                if usp in st.session_state["final_usps"]:
-                    del st.session_state["final_usps"][usp]
+                if usp_id in st.session_state["final_usps"]:
+                    del st.session_state["final_usps"][usp_id]
 
                 # Remove from custom_usps if it is a custom USP
-                st.session_state["custom_usps"] = [cusp for cusp in st.session_state["custom_usps"] if cusp["name"] != usp]
-                
+                st.session_state["custom_usps"] = [cusp for cusp in st.session_state["custom_usps"] if cusp["id"] != usp_id]
+
                 # Force UI refresh after deletion
                 st.rerun()
 
     # Finalize USPs button
-    if st.button("Finalize USPs", key="finalize_usps"):
+    if st.button("Finalize USPs", key="finalize_usps_unique"):
         # Update the final USPs list with the dragged order
         st.session_state["final_usps"] = {
-            usp: st.session_state["final_usps"].get(usp, usp)
-            for usp in st.session_state["dragged_usps"]
+            usp_id: usp for usp_id, usp in zip([usp_id for usp_id, _ in usps], st.session_state["dragged_usps"])
         }
         st.session_state["step"] = 4
         st.rerun()
@@ -666,11 +671,6 @@ def finalize_usps():
     if st.button("Cancel", key="cancel_finalize_usps_unique"):  # Ensure unique key
         st.session_state["step"] = 0
         st.rerun()
-
-
-
-
-
 
 
 # Step 4: Create the Long Product Description
