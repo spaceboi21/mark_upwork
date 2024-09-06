@@ -590,6 +590,11 @@ import uuid  # We'll use this to create unique IDs for each USP
 def finalize_usps():
     st.subheader("STEP 3: Finalize USPs")
 
+    # Ensure all custom USPs have unique IDs
+    for usp in st.session_state["custom_usps"]:
+        if "id" not in usp:
+            usp["id"] = str(uuid.uuid4())  # Assign a unique ID if missing
+
     # Combine selected and custom USPs into one list for sorting
     usps = [(usp_id, usp) for usp_id, usp in st.session_state["final_usps"].items()] + [
         (usp['id'], usp['name']) for usp in st.session_state["custom_usps"]
@@ -671,6 +676,7 @@ def finalize_usps():
     if st.button("Cancel", key="cancel_finalize_usps_unique"):  # Ensure unique key
         st.session_state["step"] = 0
         st.rerun()
+
 
 
 # Step 4: Create the Long Product Description
