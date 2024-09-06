@@ -585,7 +585,6 @@ def generate_usps():
         st.session_state["step"] = 0
         st.rerun()
 
-# Step 3: Finalize USPs
 def finalize_usps():
     st.subheader("STEP 3: Finalize USPs")
 
@@ -611,15 +610,17 @@ def finalize_usps():
         if st.button("Submit Custom USP", key="submit_custom_usp"):
             if len(custom_usp_name.split()) <= 6 and len(custom_usp_description.split()) <= 20 and len(st.session_state["dragged_usps"]) < 6:
                 # Ensure the custom USP is added only once
-                if (custom_usp_name not in st.session_state["final_usps"] 
-                    and all(cusp["name"] != custom_usp_name for cusp in st.session_state["custom_usps"])):
+                if custom_usp_name not in st.session_state["final_usps"] and all(cusp["name"] != custom_usp_name for cusp in st.session_state["custom_usps"]):
                     # Add to custom_usps and final_usps
                     st.session_state["custom_usps"].append({
                         "name": custom_usp_name,
                         "description": custom_usp_description
                     })
-                    # Append to dragged_usps only once
-                    st.session_state["dragged_usps"].append(custom_usp_name)
+                    # Append to dragged_usps only if it's not already there
+                    if custom_usp_name not in st.session_state["dragged_usps"]:
+                        st.session_state["dragged_usps"].append(custom_usp_name)
+                        
+                    # Add to final_usps
                     st.session_state["final_usps"][custom_usp_name] = custom_usp_description
                 st.session_state["custom_usp_form_visible"] = False
                 st.rerun()
@@ -657,6 +658,7 @@ def finalize_usps():
     if st.button("Cancel", key="cancel_finalize_usps_unique"):  # Ensure unique key
         st.session_state["step"] = 0
         st.rerun()
+
 
 
 
