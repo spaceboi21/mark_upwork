@@ -589,9 +589,12 @@ def generate_usps():
 def finalize_usps():
     st.subheader("STEP 3: Finalize USPs")
 
+    # Combine selected and custom USPs into one list for sorting
     usps = list(st.session_state["final_usps"].keys()) + [usp['name'] for usp in st.session_state["custom_usps"]]
 
     st.write("Drag to reorder USPs according to priority:")
+    
+    # Sort and display USPs
     dragged_usps = sort_items(items=usps, direction="vertical", key="usp_sortable_list")
     st.session_state["dragged_usps"] = dragged_usps
 
@@ -599,7 +602,7 @@ def finalize_usps():
     if st.button("Add Custom USP"):
         st.session_state["custom_usp_form_visible"] = True
 
-    # Display form for adding a Custom USP
+    # Custom USP form
     if st.session_state["custom_usp_form_visible"]:
         custom_usp_name = st.text_input("Custom USP Name (Max 6 words)", max_chars=50)
         custom_usp_description = st.text_area("Custom USP Description (Max 20 words)", max_chars=150)
@@ -607,13 +610,15 @@ def finalize_usps():
         # Handle adding custom USP
         if st.button("Submit Custom USP"):
             if len(custom_usp_name.split()) <= 6 and len(custom_usp_description.split()) <= 20 and len(st.session_state["dragged_usps"]) < 6:
-                # Add custom USP to the session state and lists
-                st.session_state["custom_usps"].append({
-                    "name": custom_usp_name,
-                    "description": custom_usp_description
-                })
-                st.session_state["dragged_usps"].append(custom_usp_name)
-                st.session_state["final_usps"][custom_usp_name] = custom_usp_description
+                # Ensure the custom USP is added only once
+                if custom_usp_name not in st.session_state["final_usps"] and all(cusp["name"] != custom_usp_name for cusp in st.session_state["custom_usps"]):
+                    # Add to custom_usps and dragged_usps
+                    st.session_state["custom_usps"].append({
+                        "name": custom_usp_name,
+                        "description": custom_usp_description
+                    })
+                    st.session_state["dragged_usps"].append(custom_usp_name)
+                    st.session_state["final_usps"][custom_usp_name] = custom_usp_description
                 st.session_state["custom_usp_form_visible"] = False
                 st.rerun()
             else:
@@ -624,20 +629,21 @@ def finalize_usps():
     # Display and allow deletion of USPs
     if st.session_state["dragged_usps"]:
         for index, usp in enumerate(st.session_state["dragged_usps"]):
-            # Add unique key using index and usp name to avoid duplicate key error
-            if st.button(f"❌ Delete {usp}", key=f"delete_usp_{usp}_{index}"):  # Ensure unique keys
-                # Remove from both custom and final USP list
+            if st.button(f"❌ Delete {usp}", key=f"delete_usp_{usp}_{index}"):
+                # Remove from dragged_usps, final_usps, and custom_usps
                 st.session_state["dragged_usps"].remove(usp)
                 if usp in st.session_state["final_usps"]:
                     del st.session_state["final_usps"][usp]
 
-                # Remove from custom USP list if it's a custom one
+                # Remove from custom_usps if it is a custom USP
                 st.session_state["custom_usps"] = [cusp for cusp in st.session_state["custom_usps"] if cusp["name"] != usp]
+                
+                # Force UI refresh after deletion
                 st.rerun()
 
     # Finalize USPs button
     if st.button("Finalize USPs"):
-        # Update the final USPs list with the dragged items
+        # Update the final USPs list with the dragged order
         st.session_state["final_usps"] = {
             usp: st.session_state["final_usps"].get(usp, usp)
             for usp in st.session_state["dragged_usps"]
@@ -645,6 +651,7 @@ def finalize_usps():
         st.session_state["step"] = 4
         st.rerun()
 
+    # Cancel button
     if st.button("Cancel", key="cancel_finalize_usps"):
         st.session_state["step"] = 0
         st.rerun()
