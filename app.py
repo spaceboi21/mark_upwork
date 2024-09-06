@@ -606,8 +606,12 @@ def finalize_usps():
         custom_usp_name = st.text_input("Custom USP Name (Max 6 words)", max_chars=50, key="custom_usp_name_input")
         custom_usp_description = st.text_area("Custom USP Description (Max 20 words)", max_chars=150, key="custom_usp_description_input")
 
+        # Initialize a flag to prevent multiple adds
+        if "usp_added_flag" not in st.session_state:
+            st.session_state["usp_added_flag"] = False
+
         # Handle adding custom USP
-        if st.button("Submit Custom USP", key="submit_custom_usp"):
+        if st.button("Submit Custom USP", key="submit_custom_usp") and not st.session_state["usp_added_flag"]:
             if len(custom_usp_name.split()) <= 6 and len(custom_usp_description.split()) <= 20 and len(st.session_state["dragged_usps"]) < 6:
                 # Ensure the custom USP is added only once
                 if custom_usp_name not in st.session_state["final_usps"] and all(cusp["name"] != custom_usp_name for cusp in st.session_state["custom_usps"]):
@@ -622,6 +626,10 @@ def finalize_usps():
                         
                     # Add to final_usps
                     st.session_state["final_usps"][custom_usp_name] = custom_usp_description
+
+                # Set the flag to prevent duplicate submission
+                st.session_state["usp_added_flag"] = True
+
                 st.session_state["custom_usp_form_visible"] = False
                 st.rerun()
             else:
@@ -658,6 +666,7 @@ def finalize_usps():
     if st.button("Cancel", key="cancel_finalize_usps_unique"):  # Ensure unique key
         st.session_state["step"] = 0
         st.rerun()
+
 
 
 
