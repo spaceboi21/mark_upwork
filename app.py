@@ -611,12 +611,14 @@ def finalize_usps():
         if st.button("Submit Custom USP"):
             if len(custom_usp_name.split()) <= 6 and len(custom_usp_description.split()) <= 20 and len(st.session_state["dragged_usps"]) < 6:
                 # Ensure the custom USP is added only once
-                if custom_usp_name not in st.session_state["final_usps"] and all(cusp["name"] != custom_usp_name for cusp in st.session_state["custom_usps"]):
-                    # Add to custom_usps and dragged_usps
+                if (custom_usp_name not in st.session_state["final_usps"] 
+                    and all(cusp["name"] != custom_usp_name for cusp in st.session_state["custom_usps"])):
+                    # Add to custom_usps and dragged_usps if not already present
                     st.session_state["custom_usps"].append({
                         "name": custom_usp_name,
                         "description": custom_usp_description
                     })
+                    # Append to dragged_usps and final_usps only once
                     st.session_state["dragged_usps"].append(custom_usp_name)
                     st.session_state["final_usps"][custom_usp_name] = custom_usp_description
                 st.session_state["custom_usp_form_visible"] = False
@@ -649,6 +651,11 @@ def finalize_usps():
             for usp in st.session_state["dragged_usps"]
         }
         st.session_state["step"] = 4
+        st.rerun()
+
+    # Cancel button
+    if st.button("Cancel", key="cancel_finalize_usps"):
+        st.session_state["step"] = 0
         st.rerun()
 
     # Cancel button
