@@ -587,6 +587,8 @@ def generate_usps():
 
 import uuid  # We'll use this to create unique IDs for each USP
 
+import uuid  # We'll use this to create unique IDs for each USP
+
 def finalize_usps():
     st.subheader("STEP 3: Finalize USPs")
 
@@ -602,8 +604,8 @@ def finalize_usps():
 
     st.write("Drag to reorder USPs according to priority:")
 
-    # Sort and display USPs (names, not descriptions)
-    dragged_usps = sort_items(items=[usp for _, usp in usps], direction="vertical", key="usp_sortable_list")
+    # Sort and display USP names (not descriptions)
+    dragged_usps = sort_items(items=[usp_name for _, usp_name in usps], direction="vertical", key="usp_sortable_list")
     st.session_state["dragged_usps"] = dragged_usps
 
     # Add Custom USP
@@ -629,14 +631,14 @@ def finalize_usps():
                     # Add to custom_usps and final_usps
                     st.session_state["custom_usps"].append({
                         "id": custom_usp_id,
-                        "name": custom_usp_name,
+                        "name": custom_usp_name,  # Ensure the NAME is stored
                         "description": custom_usp_description
                     })
-                    # Append the USP name (not description) to dragged_usps
+                    # Append the USP name to dragged_usps
                     st.session_state["dragged_usps"].append(custom_usp_name)
                         
                     # Add to final_usps (using the unique ID)
-                    st.session_state["final_usps"][custom_usp_id] = custom_usp_name
+                    st.session_state["final_usps"][custom_usp_id] = custom_usp_name  # Ensure the NAME is stored
 
                 # Set the flag to prevent duplicate submission
                 st.session_state["usp_added_flag"] = True
@@ -677,6 +679,7 @@ def finalize_usps():
     if st.button("Cancel", key="cancel_finalize_usps_unique"):  # Ensure unique key
         st.session_state["step"] = 0
         st.rerun()
+
 
 
 
