@@ -585,16 +585,113 @@ def generate_usps():
         st.session_state["step"] = 0
         st.rerun()
 
+# def finalize_usps():
+#     st.subheader("STEP 3: Finalize USPs")
+
+#     # Combine selected and custom USPs into one list for sorting
+#     usps = list(st.session_state["final_usps"].keys()) + [usp['name'] for usp in st.session_state["custom_usps"]]
+
+#     st.write("Drag to reorder USPs according to priority:")
+    
+#     # Sort and display USPs
+#     dragged_usps = sort_items(items=usps, direction="vertical", key="usp_sortable_list")
+#     st.session_state["dragged_usps"] = dragged_usps
+
+#     # Prevent adding duplicates by introducing a session flag
+#     if "usp_added" not in st.session_state:
+#         st.session_state["usp_added"] = False
+
+#     # Add Custom USP form
+#     with st.form(key="custom_usp_form"):
+#         custom_usp_name = st.text_input("Custom USP Name (Max 6 words)", max_chars=50, key="custom_usp_name_input")
+#         custom_usp_description = st.text_area("Custom USP Description (Max 20 words)", max_chars=150, key="custom_usp_description_input")
+        
+#         # Submit the form
+#         submit_custom_usp = st.form_submit_button("Submit Custom USP")
+
+#         if submit_custom_usp and not st.session_state["usp_added"]:
+#             # Check the number of words in both inputs
+#             name_word_count = len(custom_usp_name.split())
+#             description_word_count = len(custom_usp_description.split())
+
+#             if name_word_count <= 6 and description_word_count <= 20 and len(st.session_state["dragged_usps"]) < 6:
+#                 # Ensure the custom USP is added only once
+#                 if custom_usp_name not in st.session_state["final_usps"] and all(cusp["name"] != custom_usp_name for cusp in st.session_state["custom_usps"]):
+#                     # Add to custom_usps and final_usps
+#                     st.session_state["custom_usps"].append({
+#                         "name": custom_usp_name,
+#                         "description": custom_usp_description
+#                     })
+#                     # Append to dragged_usps only if it's not already there
+#                     if custom_usp_name not in st.session_state["dragged_usps"]:
+#                         st.session_state["dragged_usps"].append(custom_usp_name)
+                        
+#                     # Add to final_usps
+#                     st.session_state["final_usps"][custom_usp_name] = custom_usp_description
+
+#                     # Set the flag to True to prevent multiple submissions
+#                     st.session_state["usp_added"] = True
+
+#                     # Force rerun to refresh the state
+#                     st.rerun()
+#             else:
+#                 st.error(f"Custom USP name should be up to 6 words (currently {name_word_count}), "
+#                          f"description up to 20 words (currently {description_word_count}), "
+#                          f"and you can't have more than 6 USPs in total.")
+    
+#     # Display and allow deletion of USPs
+#     if st.session_state["dragged_usps"]:
+#         for index, usp in enumerate(st.session_state["dragged_usps"]):
+#             if st.button(f"❌ Delete {usp}", key=f"delete_usp_{usp}_{index}"):
+#                 # Remove from dragged_usps, final_usps, and custom_usps
+#                 st.session_state["dragged_usps"].remove(usp)
+#                 if usp in st.session_state["final_usps"]:
+#                     del st.session_state["final_usps"][usp]
+
+#                 # Remove from custom_usps if it is a custom USP
+#                 st.session_state["custom_usps"] = [cusp for cusp in st.session_state["custom_usps"] if cusp["name"] != usp]
+                
+#                 # Reset the usp_added flag after deletion so new USPs can be added
+#                 st.session_state["usp_added"] = False
+
+#                 # Force UI refresh after deletion
+#                 st.rerun()
+
+#     # Finalize USPs button
+#     if st.button("Finalize USPs", key="finalize_usps_unique"):
+#         # Update the final USPs list with the dragged order
+#         st.session_state["final_usps"] = {
+#             usp: st.session_state["final_usps"].get(usp, usp)
+#             for usp in st.session_state["dragged_usps"]
+#         }
+#         st.session_state["step"] = 4
+#         st.rerun()
+
+#     # Cancel button
+#     if st.button("Cancel", key="cancel_finalize_usps_unique"):  # Ensure unique key
+#         st.session_state["step"] = 0
+#         st.rerun()
+
+
+import uuid
+
 def finalize_usps():
     st.subheader("STEP 3: Finalize USPs")
 
+    # Ensure each custom USP has a unique ID
+    for usp in st.session_state["custom_usps"]:
+        if "id" not in usp:
+            usp["id"] = str(uuid.uuid4())
+
     # Combine selected and custom USPs into one list for sorting
-    usps = list(st.session_state["final_usps"].keys()) + [usp['name'] for usp in st.session_state["custom_usps"]]
+    usps = [(usp_id, usp) for usp_id, usp in st.session_state["final_usps"].items()] + [
+        (usp['id'], usp['name']) for usp in st.session_state["custom_usps"]
+    ]
 
     st.write("Drag to reorder USPs according to priority:")
-    
-    # Sort and display USPs
-    dragged_usps = sort_items(items=usps, direction="vertical", key="usp_sortable_list")
+
+    # Sort and display USP names (not descriptions)
+    dragged_usps = sort_items(items=[usp_name for _, usp_name in usps], direction="vertical", key="usp_sortable_list")
     st.session_state["dragged_usps"] = dragged_usps
 
     # Prevent adding duplicates by introducing a session flag
@@ -605,7 +702,7 @@ def finalize_usps():
     with st.form(key="custom_usp_form"):
         custom_usp_name = st.text_input("Custom USP Name (Max 6 words)", max_chars=50, key="custom_usp_name_input")
         custom_usp_description = st.text_area("Custom USP Description (Max 20 words)", max_chars=150, key="custom_usp_description_input")
-        
+
         # Submit the form
         submit_custom_usp = st.form_submit_button("Submit Custom USP")
 
@@ -616,41 +713,48 @@ def finalize_usps():
 
             if name_word_count <= 6 and description_word_count <= 20 and len(st.session_state["dragged_usps"]) < 6:
                 # Ensure the custom USP is added only once
-                if custom_usp_name not in st.session_state["final_usps"] and all(cusp["name"] != custom_usp_name for cusp in st.session_state["custom_usps"]):
+                if custom_usp_name not in [usp['name'] for usp in st.session_state["custom_usps"]] and custom_usp_name not in st.session_state["final_usps"]:
+                    # Add unique ID for each USP
+                    custom_usp_id = str(uuid.uuid4())
                     # Add to custom_usps and final_usps
                     st.session_state["custom_usps"].append({
+                        "id": custom_usp_id,
                         "name": custom_usp_name,
                         "description": custom_usp_description
                     })
                     # Append to dragged_usps only if it's not already there
                     if custom_usp_name not in st.session_state["dragged_usps"]:
                         st.session_state["dragged_usps"].append(custom_usp_name)
-                        
-                    # Add to final_usps
-                    st.session_state["final_usps"][custom_usp_name] = custom_usp_description
 
-                    # Set the flag to True to prevent multiple submissions
-                    st.session_state["usp_added"] = True
+                    # Add to final_usps (using the unique ID)
+                    st.session_state["final_usps"][custom_usp_id] = custom_usp_name
 
-                    # Force rerun to refresh the state
-                    st.rerun()
+                # Set the flag to prevent duplicate submission
+                st.session_state["usp_added"] = True
+
+                # Refresh state
+                st.session_state["custom_usp_form_visible"] = False
+                st.rerun()
             else:
                 st.error(f"Custom USP name should be up to 6 words (currently {name_word_count}), "
                          f"description up to 20 words (currently {description_word_count}), "
                          f"and you can't have more than 6 USPs in total.")
-    
+
     # Display and allow deletion of USPs
     if st.session_state["dragged_usps"]:
         for index, usp in enumerate(st.session_state["dragged_usps"]):
             if st.button(f"❌ Delete {usp}", key=f"delete_usp_{usp}_{index}"):
                 # Remove from dragged_usps, final_usps, and custom_usps
                 st.session_state["dragged_usps"].remove(usp)
-                if usp in st.session_state["final_usps"]:
-                    del st.session_state["final_usps"][usp]
+                for custom_usp in st.session_state["custom_usps"]:
+                    if custom_usp["name"] == usp:
+                        st.session_state["custom_usps"].remove(custom_usp)
+                        break
+                for usp_id, name in list(st.session_state["final_usps"].items()):
+                    if name == usp:
+                        del st.session_state["final_usps"][usp_id]
+                        break
 
-                # Remove from custom_usps if it is a custom USP
-                st.session_state["custom_usps"] = [cusp for cusp in st.session_state["custom_usps"] if cusp["name"] != usp]
-                
                 # Reset the usp_added flag after deletion so new USPs can be added
                 st.session_state["usp_added"] = False
 
@@ -661,8 +765,7 @@ def finalize_usps():
     if st.button("Finalize USPs", key="finalize_usps_unique"):
         # Update the final USPs list with the dragged order
         st.session_state["final_usps"] = {
-            usp: st.session_state["final_usps"].get(usp, usp)
-            for usp in st.session_state["dragged_usps"]
+            usp_id: usp for usp_id, usp in zip([usp_id for usp_id, _ in usps], st.session_state["dragged_usps"])
         }
         st.session_state["step"] = 4
         st.rerun()
@@ -671,8 +774,6 @@ def finalize_usps():
     if st.button("Cancel", key="cancel_finalize_usps_unique"):  # Ensure unique key
         st.session_state["step"] = 0
         st.rerun()
-
-
 
 
 
